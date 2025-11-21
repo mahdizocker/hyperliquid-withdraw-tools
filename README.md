@@ -345,6 +345,12 @@ AMOUNT_HYPE_TO_WITHDRAW=10.0
 npx ts-node withdrawFromStaking.ts
 ```
 
+OR
+```bash
+npx tsc withdrawFromStaking.ts
+node withdrawFromStaking.js
+```
+
 If successful, you’ll see something like:
 
 ```text
@@ -392,6 +398,12 @@ Your **spot HYPE balance** should now be higher.
 
    ```bash
    npx ts-node withdrawFromStaking.ts
+   ```
+
+   OR
+   ```bash
+   npx tsc withdrawFromStaking.ts
+   node withdrawFromStaking.js
    ```
 
 5. (Optional) **Manage vault funds**
