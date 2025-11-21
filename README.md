@@ -320,7 +320,6 @@ If you have `config.json` and/or env vars set, you can omit many flags and let t
 This script calls the Hyperliquid TS SDK’s `cWithdraw` method to move unlocked HYPE from **staking balance** → **spot balance**.
 
 > You must have **already unstaked** and the lock/unbonding period must be over, otherwise this will fail.
-> Transfers from Staking Balance to Spot Balance are locked for 7 days.
 
 ### Install dependencies
 
@@ -359,11 +358,11 @@ cWithdraw result:
 { "status": "ok", ... }
 ```
 
-Your **spot HYPE balance** should now be higher.
+> Note that transfers from staking to spot account go through a 7 day unstaking queue.
 
 ---
 
-## 🔁 Full Flow Overview
+## 🔁 Full Flow Overview (Unstaking + Transfer to Spot)
 
 1. **Unstake HYPE from validator**
 
@@ -404,15 +403,5 @@ Your **spot HYPE balance** should now be higher.
    npx tsc withdrawFromStaking.ts
    node withdrawFromStaking.js
    ```
-
-5. (Optional) **Manage vault funds**
-
-   * Via CLI:
-
-     ```bash
-     python hype_cli.py
-     # choose: "Vault transfer (deposit / withdraw)"
-     ```
-   * Or via standalone `vault_withdraw.py`.
 
 ### ❗️ Never share private keys.
