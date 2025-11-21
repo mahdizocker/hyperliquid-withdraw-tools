@@ -1,16 +1,19 @@
-# **hyperliquid-withdraw-tools**
+# Hyperliquid Withdraw Tools
 
-### *Tools for Unstaking & Withdrawing HYPE on Hyperliquid (Python + TypeScript)*
+**Tools for managing HYPE staking and vault transfers on Hyperliquid (Python + TypeScript).**
 
----
+This repository provides:
 
-## 📌 Overview
+- A **Python CLI** (`hype_cli.py`) for:
+  - Viewing your **staking overview** (summary, delegations, rewards)
+  - **Unstaking (undelegating)** HYPE from any validator
+  - Preparing `.env` for the **TypeScript withdraw script** (staking → spot)
+  - Performing **vault transfers** (deposit into / withdraw from a vault)
 
-**hyperliquid-withdraw-tools** is a simple, command-line based toolkit that allows you to:
-
-* **Unstake (Undelegate) HYPE** from *any* Hyperliquid validator (Python)
-* **Withdraw HYPE from Staking → Spot** after the lock/unbonding period (TypeScript)
-* Use a **beginner-friendly CLI** to guide you through both processes interactively
+- Standalone scripts:
+  - `unstake_hype.py` – Unstake HYPE from a specific validator
+  - `vault_withdraw.py` – Perform a **vaultTransfer** (deposit or withdraw) using config/env/CLI
+  - `withdrawFromStaking.ts` – Withdraw unlocked HYPE from **staking → spot** via TS SDK
 
 This project is designed for users who **cannot use the Hyperliquid UI**, or prefer automation and scripting.
 
@@ -18,52 +21,79 @@ This project is designed for users who **cannot use the Hyperliquid UI**, or pre
 
 ## ⚠️ Security Warning
 
-**Never share or upload your real private key (private_key, .env, config.json).**
-This repository includes:
+> **NEVER commit or share your real private key.**
 
-* `config.example.json`
-* `.env.example`
-* `.gitignore`
+This repo uses sample config files:
 
-You must create your own **local** `config.json` and `.env` files on your system.
-They must **never** be committed to GitHub.
+- `config.example.json`
+- `.env.example`
+
+You must create your own **local**:
+
+- `config.json`
+- `.env`
+
+These files **must not** be uploaded to GitHub or shared with anyone.
 
 ---
 
 ## 📁 Project Structure
 
-```
+Typical layout:
+
+```text
 hyperliquid-withdraw-tools/
 │
-├── unstake_hype.py               # Python script to unstake from any validator
-├── withdrawFromStaking.ts        # TypeScript script to withdraw staking → spot
-├── hype_cli.py                   # Interactive CLI tool (Python)
+├── hype_cli.py                 # Rich CLI: staking overview, unstake, env setup, vault transfer
+├── unstake_hype.py             # Simple Python script to unstake from a validator
+├── vault_withdraw.py           # Python script for vaultTransfer (deposit / withdraw)
+├── withdrawFromStaking.ts      # TS script: withdraw HYPE from staking → spot
 │
-├── config.example.json           # Template config (safe)
-├── .env.example                  # Template .env (safe)
+├── config.example.json         # Example config (no real secrets)
+├── .env.example                # Example env file (no real secrets)
 │
-├── README.md                     # This file
-├── GUIDE.fa.md                   # Persian-language full guide
+├── README.md                   # This file
+├── GUIDE.fa.md                 # Persian-language detailed guide
 │
-├── package.json / tsconfig.json  # Node configuration files
+├── package.json                # Node dependencies and scripts
+├── tsconfig.json               # TypeScript configuration
 └── ...
+````
+
+---
+
+## 🔧 Requirements
+
+### Python
+
+* Python **3.10+**
+* Install:
+
+```bash
+pip install hyperliquid-python-sdk eth-account rich
+```
+
+> Recommended: use a virtual environment (`python -m venv venv`).
+
+---
+
+### Node / TypeScript
+
+* Node.js **16+** (LTS recommended)
+* Install in the repo folder:
+
+```bash
+npm install @nktkas/hyperliquid viem dotenv
+npm install -D ts-node typescript @types/node
 ```
 
 ---
 
-# 🐍 Python — Unstake HYPE (Undelegate)
+## 🔐 Local Configuration
 
-The script `unstake_hype.py` lets you unstake HYPE from **any validator** with a single command.
+### 1. `config.json` (used by Python scripts)
 
-### ✅ Installation
-
-```bash
-pip install hyperliquid-python-sdk eth-account
-```
-
-### 🔧 Local configuration
-
-Create a file `config.json`:
+Create a file named `config.json` in the project root:
 
 ```json
 {
@@ -71,156 +101,307 @@ Create a file `config.json`:
 }
 ```
 
+Optional extra fields used by `vault_withdraw.py`:
+
+```json
+{
+  "private_key": "0xYOUR_PRIVATE_KEY_HERE",
+  "vault_address": "0xYOUR_VAULT_ADDRESS_HERE",
+  "default_vault_withdraw_usd": 1.5,
+  "is_mainnet": true,
+  "vault_is_deposit_default": false
+}
+```
+
 ---
 
-## ▶️ Usage Examples
+### 2. `.env` (used by TypeScript withdraw script)
 
-### 1) Unstake 10 HYPE from **Hyper Foundation3**
+Create a file named `.env` (not committed) in the project root:
+
+```env
+PRIVATE_KEY=0xYOUR_PRIVATE_KEY_HERE
+AMOUNT_HYPE_TO_WITHDRAW=10.0
+```
+
+You can also let the CLI (`hype_cli.py`) prepare/update this file for you.
+
+---
+
+## 🌈 Rich CLI – `hype_cli.py`
+
+This is the **main entry point** for non-technical users.
+
+It provides:
+
+* Staking overview (summary, delegations, rewards)
+* Unstake from a validator (with validator auto-detection)
+* Prepare `.env` for TypeScript withdraw
+* Vault transfer (deposit / withdraw)
+
+### ▶️ Run the CLI
 
 ```bash
+python hype_cli.py
+# or, on some systems:
+python3 hype_cli.py
+```
+
+You’ll see a menu like:
+
+```text
+==================== HYPE CLI ====================
+Connected wallet: 0xYourAddressHere
+
+Main Menu
+---------
+1. View staking overview (summary, delegations, rewards)
+2. Unstake (undelegate) HYPE from a validator
+3. Prepare .env for withdrawFromStaking.ts
+4. Vault transfer (deposit / withdraw)
+5. Exit
+```
+
+### 1) View staking overview
+
+Shows:
+
+* Your address
+* Raw staking summary
+* Your delegations (validator + delegated amount)
+* Recent rewards (if available)
+
+### 2) Unstake (Undelegate) HYPE
+
+Flow:
+
+* Fetches your current delegations
+* Lets you pick a validator from a numbered list **or** enter an address manually
+* Asks how much HYPE to unstake
+* Asks for confirmation and sends a `token_delegate` action with `is_undelegate=True`
+
+> After unstaking, your tokens enter **lock / unbonding** and cannot be withdrawn immediately.
+
+### 3) Prepare `.env` for withdraw script
+
+* Asks how much HYPE you plan to withdraw once unlocked.
+* Writes/updates:
+
+```env
+PRIVATE_KEY=0xYOUR_PRIVATE_KEY_HERE
+AMOUNT_HYPE_TO_WITHDRAW=10.0
+```
+
+This prepares everything for `withdrawFromStaking.ts`.
+
+### 4) Vault transfer (deposit / withdraw)
+
+Uses the `vaultTransfer` action to move funds between:
+
+* **Perp account → Vault** (deposit), or
+* **Vault → Perp account** (withdraw)
+
+Flow:
+
+1. Asks for `vaultAddress` (0x…)
+2. Asks for direction:
+
+   * `1` = Deposit (perp → vault)
+   * `2` = Withdraw (vault → perp) – **default**
+3. Asks for amount in USD (e.g. `1.5`)
+4. Shows a confirmation panel
+5. Builds and signs a `vaultTransfer` action using `sign_l1_action`
+6. Sends the action via `exchange._post_action(action, signature, nonce)`
+
+---
+
+## 🐍 Script: `unstake_hype.py`
+
+Simple script for **unstaking HYPE from a specific validator**, without going through the full CLI.
+
+### Usage
+
+```bash
+python unstake_hype.py --validator 0xValidatorAddress --amount 10
+```
+
+Examples:
+
+```bash
+# Unstake 10 HYPE from Hyper Foundation3
 python unstake_hype.py \
   --validator 0x80f0cd23da5bf3a0101110cfd0f89c8a69a1384d \
   --amount 10
+
+# Unstake 5.5 HYPE from another validator
+python unstake_hype.py \
+  --validator 0xValidatorAddressHere \
+  --amount 5.5
 ```
 
-### 2) Unstake 5.5 HYPE from any validator
+Relies on:
+
+* `config.json` for `private_key`
+* Hyperliquid mainnet via `hyperliquid-python-sdk`
+
+---
+
+## 🐍 Script: `vault_withdraw.py`
+
+Generic **vaultTransfer** tool that supports:
+
+* **Deposit into vault** (perp → vault)
+* **Withdraw from vault** (vault → perp)
+
+It can read configuration from:
+
+1. **Command-line arguments**
+2. **Environment variables**
+3. **`config.json`**
+
+### Parameters & precedence
+
+**Private key:**
+
+* `--private-key`
+* `PRIVATE_KEY` (env)
+* `config.json["private_key"]`
+
+**Vault address:**
+
+* `--vault-address`
+* `VAULT_ADDRESS` (env)
+* `config.json["vault_address"]`
+
+**Amount in USD:**
+
+* `--amount-usd`
+* `WITHDRAW_AMOUNT_USD` (env)
+* `config.json["default_vault_withdraw_usd"]`
+
+**Direction:**
+
+* `--deposit` (perp → vault)
+* `--withdraw` (vault → perp) – default
+* `IS_DEPOSIT` env (`true`/`false`)
+* `config.json["vault_is_deposit_default"]`
+
+**Network:**
+
+* `--testnet` (use testnet API)
+* `IS_MAINNET` env (`true`/`false`)
+* `config.json["is_mainnet"]` (default: `true`)
+
+### Example: simple withdraw (vault → perp)
 
 ```bash
-python unstake_hype.py --validator 0xValidatorAddress --amount 5.5
+# Using CLI args only
+python vault_withdraw.py \
+  --private-key 0xYOUR_PRIVATE_KEY \
+  --vault-address 0xYOUR_VAULT_ADDRESS \
+  --amount-usd 5.0 \
+  --withdraw
 ```
 
----
+### Example: deposit from perp → vault
 
-## 📝 What happens after unstaking?
+```bash
+python vault_withdraw.py \
+  --private-key 0xYOUR_PRIVATE_KEY \
+  --vault-address 0xYOUR_VAULT_ADDRESS \
+  --amount-usd 2.5 \
+  --deposit
+```
 
-* Your tokens move into the **lock / unbonding period**.
-* You **cannot withdraw yet**, even if unstake was successful.
-* After the lock period ends, you can perform the **withdraw step** using the TypeScript script.
-
----
-
-# 🟦 TypeScript — Withdraw Staking → Spot
-
-The script `withdrawFromStaking.ts` uses the official Hyperliquid TS SDK to send the `cWithdraw` action.
-
-> ⚠️ You can only withdraw **after** lock/unbonding completes.
+If you have `config.json` and/or env vars set, you can omit many flags and let the script resolve defaults.
 
 ---
 
-## ✅ Installation
+## 🟦 Script: `withdrawFromStaking.ts` (TypeScript)
+
+This script calls the Hyperliquid TS SDK’s `cWithdraw` method to move unlocked HYPE from **staking balance** → **spot balance**.
+
+> You must have **already unstaked** and the lock/unbonding period must be over, otherwise this will fail.
+
+### Install dependencies
 
 ```bash
 npm install @nktkas/hyperliquid viem dotenv
 npm install -D ts-node typescript @types/node
 ```
 
-### 🔧 Create `.env` locally:
+### Ensure `.env` is set
 
-```
+Typically created by `hype_cli.py`, or manually:
+
+```env
 PRIVATE_KEY=0xYOUR_PRIVATE_KEY
 AMOUNT_HYPE_TO_WITHDRAW=10.0
 ```
 
----
-
-## ▶️ Usage
+### Run
 
 ```bash
 npx ts-node withdrawFromStaking.ts
 ```
 
-### Example output:
+If successful, you’ll see something like:
 
-```
+```text
 Withdrawing 10 HYPE (1000000000 wei) from staking → spot
 Using address: 0xYourAddress
 cWithdraw result:
 { "status": "ok", ... }
 ```
 
-After this, your **Spot HYPE balance** will increase.
+Your **spot HYPE balance** should now be higher.
 
 ---
 
-# 🖥️ Python CLI — Interactive Tool
+## 🔁 Full Flow Overview
 
-The file `hype_cli.py` provides a step-by-step interactive CLI for beginners.
+1. **Unstake HYPE from validator**
 
-It offers two main operations:
+   * Via CLI:
 
-### 1. **Unstake HYPE**
+     ```bash
+     python hype_cli.py
+     # choose: "Unstake (undelegate) HYPE from a validator"
+     ```
+   * Or via standalone script:
 
-Guides you through entering:
+     ```bash
+     python unstake_hype.py --validator 0x... --amount 10
+     ```
 
-* Validator address
-* Amount of HYPE
+2. **Wait for lock/unbonding period**
 
-### 2. **Prepare `.env` for Withdraw**
+   * On Hyperliquid, tokens don’t become withdrawable instantly.
 
-Automatically writes a correct `.env` file for the TS withdraw script.
+3. **Prepare withdraw config**
 
----
+   * Via CLI:
 
-## ▶️ Run CLI
+     ```bash
+     python hype_cli.py
+     # choose: "Prepare .env for withdrawFromStaking.ts"
+     ```
+   * Or manually edit `.env`.
 
-```bash
-python hype_cli.py
-```
+4. **Withdraw staking → spot**
 
-You’ll see a menu:
+   ```bash
+   npx ts-node withdrawFromStaking.ts
+   ```
 
-```
-==================== HYPE CLI ====================
-1) Unstake (Undelegate) HYPE from a validator
-2) Prepare .env for Withdraw from Staking → Spot
-3) Exit
-```
+5. (Optional) **Manage vault funds**
 
----
+   * Via CLI:
 
-# 🧠 Full Withdrawal Flow
-
-Here is the required 2-step Hyperliquid process:
-
-### **Step 1 — Unstake (Undelegate) using Python**
-
-```bash
-python unstake_hype.py --validator <address> --amount <HYPE>
-```
-
-### **Wait for Lock / Unbonding Period**
-
-Nothing can bypass this — it’s enforced by Hyperliquid.
-
-### **Step 2 — Withdraw from Staking → Spot (TypeScript)**
-
-```bash
-npx ts-node withdrawFromStaking.ts
-```
-
----
-
-# 🛠️ Requirements
-
-### Python tools require:
-
-* Python 3.10+
-* pip packages:
-
-  * `hyperliquid-python-sdk`
-  * `eth-account`
-
-### TypeScript tools require:
-
-* Node.js 16+
-* npm packages:
-
-  * `@nktkas/hyperliquid`
-  * `viem`
-  * `dotenv`
-  * `typescript`
-  * `ts-node`
-
----
+     ```bash
+     python hype_cli.py
+     # choose: "Vault transfer (deposit / withdraw)"
+     ```
+   * Or via standalone `vault_withdraw.py`.
 
 ### ❗️ Never share private keys.
