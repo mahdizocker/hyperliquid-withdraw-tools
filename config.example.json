@@ -1,3 +1,9 @@
 {
-  "private_key": "0xYOUR_PRIVATE_KEY_HERE"
+  "private_key": "0xYOUR_PRIVATE_KEY_HERE",
+  
+  "vault_address": "0xYOUR_VAULT_ADDRESS_HERE",
+  "default_vault_withdraw_usd": 1.5,
+  
+  "is_mainnet": true,
+  "vault_is_deposit_default": false
 }
