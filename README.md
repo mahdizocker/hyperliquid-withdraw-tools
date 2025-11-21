@@ -5,7 +5,7 @@
 This repository provides:
 
 - A **Python CLI** (`hype_cli.py`) for:
-  - Viewing your **staking overview** (summary, delegations, rewards)
+  - Viewing your **staking overview** (summary, rewards)
   - **Unstaking (undelegating)** HYPE from any validator
   - Preparing `.env` for the **TypeScript withdraw script** (staking → spot)
   - Performing **vault transfers** (deposit into / withdraw from a vault)
@@ -134,7 +134,7 @@ This is the **main entry point** for non-technical users.
 
 It provides:
 
-* Staking overview (summary, delegations, rewards)
+* Staking overview (summary, rewards)
 * Unstake from a validator (with validator auto-detection)
 * Prepare `.env` for TypeScript withdraw
 * Vault transfer (deposit / withdraw)
@@ -155,7 +155,7 @@ Connected wallet: 0xYourAddressHere
 
 Main Menu
 ---------
-1. View staking overview (summary, delegations, rewards)
+1. View staking overview (summary, rewards)
 2. Unstake (undelegate) HYPE from a validator
 3. Prepare .env for withdrawFromStaking.ts
 4. Vault transfer (deposit / withdraw)
@@ -168,15 +168,13 @@ Shows:
 
 * Your address
 * Raw staking summary
-* Your delegations (validator + delegated amount)
 * Recent rewards (if available)
 
 ### 2) Unstake (Undelegate) HYPE
 
 Flow:
 
-* Fetches your current delegations
-* Lets you pick a validator from a numbered list **or** enter an address manually
+* Lets you pick a validator from an address
 * Asks how much HYPE to unstake
 * Asks for confirmation and sends a `token_delegate` action with `is_undelegate=True`
 
@@ -322,6 +320,7 @@ If you have `config.json` and/or env vars set, you can omit many flags and let t
 This script calls the Hyperliquid TS SDK’s `cWithdraw` method to move unlocked HYPE from **staking balance** → **spot balance**.
 
 > You must have **already unstaked** and the lock/unbonding period must be over, otherwise this will fail.
+> Transfers from Staking Balance to Spot Balance are locked for 7 days.
 
 ### Install dependencies
 
