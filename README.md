@@ -178,8 +178,6 @@ Flow:
 * Asks how much HYPE to unstake
 * Asks for confirmation and sends a `token_delegate` action with `is_undelegate=True`
 
-> After unstaking, your tokens enter **lock / unbonding** and cannot be withdrawn immediately.
-
 ### 3) Prepare `.env` for withdraw script
 
 * Asks how much HYPE you plan to withdraw once unlocked.
