@@ -404,8 +404,4 @@ cWithdraw result:
    node withdrawFromStaking.js
    ```
 
-### ❗️ Never share private keys.
-
----
-
-[![Crypto Payment](https://paybadge.profullstack.com/badge-large.svg)](https://paybadge.profullstack.com/?tickers=eth%2Cusdc&recipient_addresses=eth%3A0x2d9056e0199cfc5889aec3396041041d04af2df6%2Cusdc%3A0x2d9056e0199cfc5889aec3396041041d04af2df6)
+### ❗️ Never share private keys
